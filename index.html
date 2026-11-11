@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>11.11cmでとめる</title>
+<meta name="description" content="太さも味もちがう4本のスティックを、先からかじる。どれも のこり11.11cmでとめて、並べて「11.11」をつくる。">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://1111cm-tomeru.pages.dev/">
+<meta property="og:title" content="11.11cmでとめる">
+<meta property="og:description" content="太さも味もちがう4本のスティックを、先からかじる。どれも のこり11.11cmでとめて、並べて「11.11」をつくる。">
+<meta property="og:image" content="https://1111cm-tomeru.pages.dev/ogp.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="11.11cmでとめる">
+<meta name="twitter:description" content="太さも味もちがう4本のスティックを、先からかじる。どれも のこり11.11cmでとめて、並べて「11.11」をつくる。">
+<meta name="twitter:image" content="https://1111cm-tomeru.pages.dev/ogp.png">
+<meta name="theme-color" content="#EDF0F1">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Maru+Gothic:wght@500;700;900&family=Azeret+Mono:wght@500;700&display=swap">
+<style>
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);box-sizing:border-box}
+/* layout: one-screen game. quiet table, white plate holding the stick, 4 finished sticks stand as "11.11" */
+:root{
+  --cloth:#EDF0F1; --check:rgba(92,134,170,.05); --ink:#2A2622; --sub:#6E6660;
+  --plate:#FFFFFF; --rim:#D9E2E8; --choco:#5A3420; --biscuit:#E3B777;
+  --accent:#C8443A; --gold:#D99A1E;
+  --f-disp:"Dela Gothic One","Zen Maru Gothic",system-ui,sans-serif;
+  --f-body:"Zen Maru Gothic","Hiragino Maru Gothic ProN",system-ui,sans-serif;
+  --f-num:"Azeret Mono",ui-monospace,Menlo,monospace;
+  color-scheme:light;
+}
+[hidden]{display:none!important}
+*{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+html,body{height:100%}
+body{margin:0;background:var(--cloth);color:var(--ink);font-family:var(--f-body);overflow:hidden;-webkit-tap-highlight-color:transparent}
+#app{height:100%;display:flex;flex-direction:column;max-width:720px;margin:0 auto;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px;box-sizing:border-box;gap:12px}
+.screen{flex:1;display:flex;flex-direction:column;gap:12px;min-height:0}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.slots{width:132px;height:52px;flex:none}
+.target{font-weight:900;font-size:15px;text-align:center}
+.target b{font-family:var(--f-num);font-size:20px;color:var(--accent)}
+.gear{background:none;border:none;font:inherit;color:var(--sub);font-size:13px;cursor:pointer;padding:6px}
+.table{flex:1;min-height:0;position:relative}
+canvas{width:100%;height:100%;display:block;touch-action:manipulation}
+.msg{position:absolute;left:0;right:0;top:8%;text-align:center;font-weight:900;font-size:17px;pointer-events:none;transition:opacity .3s}
+.msg small{display:block;font-size:13px;font-weight:700;color:var(--sub);margin-top:4px}
+.ctrl{display:grid;grid-template-columns:1fr;gap:10px}
+.btn{font-family:var(--f-body);font-weight:900;font-size:20px;border:2.5px solid var(--ink);border-radius:16px;padding:16px 8px;background:var(--plate);color:var(--ink);cursor:pointer;box-shadow:0 4px 0 var(--ink);touch-action:manipulation}
+.btn small{display:block;font-size:12px;font-weight:700;color:var(--sub);margin-top:2px}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+.btn:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.btn.stop{grid-column:1/-1;background:var(--accent);color:#fff;font-size:22px}
+.btn.hold{font-size:24px;padding:24px 8px;touch-action:none}
+.btn.hold small{font-size:13px}
+.btn.hold.on{transform:translateY(3px);box-shadow:0 1px 0 var(--ink);background:var(--choco);color:#fff}
+.btn.hold.on small{color:#E9D6C6}
+.btn:disabled{opacity:.4;pointer-events:none}
+/* title */
+.title{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:16px;min-height:0}
+.hero{width:min(100%,420px);aspect-ratio:7/5;max-height:42vh;max-width:100%}
+h1{font-family:var(--f-disp);font-weight:400;font-size:clamp(30px,8.5vw,52px);line-height:1.2;margin:0;text-wrap:balance}
+h1 span{color:var(--accent)}
+.lead{font-size:15px;line-height:1.8;max-width:30em;margin:0}
+.big{min-width:220px}
+/* result */
+.res{flex:1;display:flex;flex-direction:column;gap:12px;min-height:0;overflow:auto}
+.board{flex:1;min-height:240px;background:var(--plate);border:2.5px solid var(--ink);border-radius:18px;position:relative}
+.rank{text-align:center}
+.rank .name{font-family:var(--f-disp);font-size:28px}
+.rank .meta{font-size:14px;color:var(--sub);font-weight:700;margin-top:2px}
+.rank .meta b{font-family:var(--f-num);color:var(--ink);font-size:18px}
+.snd{position:absolute;top:calc(8px + env(safe-area-inset-top,0px));right:max(12px,env(safe-area-inset-right,0px));background:var(--plate);border:2px solid var(--ink);border-radius:999px;font:700 13px var(--f-body);color:var(--ink);padding:6px 12px;cursor:pointer;z-index:3}
+.snd:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.share{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.share .btn{font-size:16px;padding:12px 8px;text-decoration:none;text-align:center;display:block}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:#fff;border-radius:999px;padding:8px 16px;font-weight:700;font-size:14px;z-index:6;transition:opacity .3s}
+.spacer{width:40px;flex:none}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app">
+  <section class="screen" id="sTitle">
+    <button class="snd" id="bSnd" aria-pressed="true">音 ON</button>
+    <div class="title">
+      <canvas class="hero" id="cvHero"></canvas>
+      <h1><span>11.11</span>cmで<br>とめる</h1>
+      <p class="lead">太さも味もちがう4本を、先からかじる。<br>のこり 11.11cm でとめて、「11.11」をつくる。</p>
+      <button class="btn stop big" id="bStart">はじめる</button>
+    </div>
+  </section>
+
+  <section class="screen" id="sPlay" hidden>
+    <div class="top">
+      <canvas class="slots" id="cvSlots" aria-label="できた本数"></canvas>
+      <span class="target">のこり <b>11.11</b>cm で<br>とめる</span>
+      <span class="spacer"></span>
+    </div>
+    <div class="table">
+      <canvas id="cv"></canvas>
+      <div class="msg" id="msg"></div>
+    </div>
+    <div class="ctrl">
+      <button class="btn hold" id="bHold">おしてるあいだ かじる<small id="holdSub">はなしたら、そこで決定</small></button>
+      <button class="btn stop" id="bStop" hidden>次の1本</button>
+    </div>
+  </section>
+
+  <section class="screen" id="sRes" hidden>
+    <div class="res">
+      <div class="board"><canvas id="cvRes"></canvas></div>
+      <div class="rank">
+        <div class="name" id="rName">—</div>
+        <div class="meta"><b id="rScore">0</b> 点 ・ 平均のずれ <b id="rAvg">0</b>cm ・ ピタリ <b id="rPita">0</b>本</div>
+      </div>
+      <div class="share">
+        <a class="btn" id="bPost" href="#" target="_blank" rel="noopener">Xにポスト</a>
+        <button class="btn" id="bImg">画像で共有</button>
+      </div>
+      <button class="btn stop" id="bAgain">もう1回</button>
+    </div>
+  </section>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const T=11.11, HANDLE=3.2, TOT=4;
+const C={ink:'#2A2622',sub:'#6E6660',choco:'#5A3420',chocoHi:'#7B4A2E',bis:'#E3B777',bisDk:'#C99653',accent:'#C8443A',gold:'#D99A1E',rim:'#D9E2E8'};
+const $=id=>document.getElementById(id);
+// stick types. w: thickness, speed: how fast you bite through, bite: size of a bite, varr: how uneven the bites are
+const TYPES={
+  milk:  {id:'milk', name:'ミルクチョコ',coat:'#5A3420',hi:'#7B4A2E',w:1,   speed:1,   bite:1,   varr:1},
+  thin:  {id:'thin', name:'極細',        coat:'#4E2C1A',hi:'#6E4329',w:.55, speed:1.3, bite:.85, varr:1},
+  thick: {id:'thick',name:'ごんぶと',    coat:'#5A3420',hi:'#7B4A2E',w:1.6, speed:.72, bite:1.15,varr:.8},
+  straw: {id:'straw',name:'いちご',      coat:'#E68AA3',hi:'#F4BACA',w:1,   speed:1,   bite:1,   varr:1},
+  crunch:{id:'crunch',name:'つぶつぶ',   coat:'#6B3F24',hi:'#8A5634',w:1.15,speed:.9,  bite:1.05,varr:1.6,dots:'#D9B07A'}};
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+const cv=$('cv'), cx=cv.getContext('2d');
+let W=0,H=0,dpr=1;
+const S={no:0,len:0,offset:0,state:'idle',guideUntil:0,results:[],crumbs:[],bites:[],shake:0,holding:false,holdStart:0,nextBite:0,zoom:1,revealT:0};
+const opt={guide:2,varr:0.45,snd:1,mode:'release',speed:1};
+const URL_='https://1111cm-tomeru.pages.dev/', TAG='11_11cmでとめる';
+try{if(localStorage.getItem('tomeru1111-snd')==='0')opt.snd=0;}catch(e){}
+
+function fit(c){const r=c.getBoundingClientRect(),d=Math.min(2,window.devicePixelRatio||1);c.width=Math.max(1,r.width*d);c.height=Math.max(1,r.height*d);const g=c.getContext('2d');g.setTransform(d,0,0,d,0,0);return {g,w:r.width,h:r.height};}
+function resize(){const r=cv.getBoundingClientRect();dpr=Math.min(2,window.devicePixelRatio||1);W=r.width;H=r.height;cv.width=W*dpr;cv.height=H*dpr;}
+addEventListener('resize',()=>{resize();if(!$('sTitle').hidden)drawHero();if(!$('sPlay').hidden)drawSlots();if(!$('sRes').hidden)drawRes();});
+
+function show(id){for(const s of ['sTitle','sPlay','sRes'])$(s).hidden=s!==id;
+  if(id==='sPlay'){resize();drawSlots();} if(id==='sTitle')drawHero(); if(id==='sRes')drawRes();}
+
+/* ---------- standing sticks: "1 1 . 1 1" ---------- */
+// lens: array of 4 (number or null). opts: {line, labels, mini}
+function drawUpright(g,w,h,lens,o={}){
+  g.clearRect(0,0,w,h);
+  const padB=o.labels?46:4, padT=o.mini?4:18;
+  const maxCm=o.mini?13:Math.max(13.5,...lens.filter(v=>v!=null).map(v=>v+1));
+  const sc=(h-padB-padT)/maxCm;                     // px per cm
+  const sw0=o.mini?Math.max(6,w*.075):Math.min(w*.085,sc*1.1); // stick width
+  const gap=w/5.4, cx0=w/2;
+  const xs=[cx0-gap*1.55,cx0-gap*.6,cx0+gap*.6,cx0+gap*1.55];
+  const base=h-padB;
+  // target line
+  if(o.line){const ty=base-T*sc;g.strokeStyle=C.accent;g.lineWidth=o.mini?1:1.5;g.setLineDash(o.mini?[3,3]:[6,5]);g.beginPath();g.moveTo(xs[0]-sw0*1.4,ty);g.lineTo(xs[3]+sw0*1.4,ty);g.stroke();g.setLineDash([]);
+    if(!o.mini){g.fillStyle=C.accent;g.font='700 11px "Azeret Mono",monospace';g.textAlign='center';g.fillText('11.11',cx0,ty-6);}}
+  // dot (a chocolate ball)
+  g.fillStyle=C.choco;g.beginPath();g.arc(cx0,base-sw0*.55,sw0*.55,0,7);g.fill();
+  lens.forEach((L,i)=>{
+    const ty=(o.types&&o.types[i])||TYPES.milk, sw=Math.min(sw0*ty.w,gap*.55);
+    const x=xs[i]-sw/2;
+    if(L==null){g.strokeStyle=C.rim;g.lineWidth=1.5;g.setLineDash([3,3]);g.strokeRect(x,base-T*sc,sw,T*sc);g.setLineDash([]);return;}
+    if(L<=0){g.fillStyle=C.bis;g.beginPath();g.arc(xs[i],base-2,2,0,7);g.fill();}
+    else{
+      const top=base-L*sc, hb=Math.min(HANDLE,L)*sc;
+      const rt=o.perfect?sw/2:0;
+      if(L>HANDLE){
+        g.fillStyle=C.bis;g.fillRect(x,base-hb,sw,hb);
+        g.fillStyle=ty.coat;roundTop(g,x,top,sw,L*sc-hb,rt);
+        g.fillStyle=ty.hi;g.fillRect(x+sw*.2,top+sw*.6,Math.max(1.5,sw*.16),Math.max(0,L*sc-hb-sw*.9));
+      }else{g.fillStyle=C.bis;roundTop(g,x,top,sw,L*sc,rt);}
+      if(ty.dots&&L>HANDLE){g.fillStyle=ty.dots;for(let k=0;k<(L-HANDLE)*1.6;k++){const yy=top+sw*.5+((k*0.61)%1)*(L*sc-hb-sw*.8);g.fillRect(x+((k*0.37)%1)*sw*.8,yy,Math.max(1.5,sw*.14),Math.max(1.5,sw*.14));}}
+      if(!o.perfect){ // bite mark at the top, in the shape it was bitten
+        const shp=(o.shapes&&o.shapes[i])||'flat';
+        g.save();g.globalCompositeOperation='destination-out';g.beginPath();
+        if(shp==='round')g.arc(x+sw*(.25+((i*37)%5)/10),top-sw*.15,sw*.42,0,7);
+        else if(shp==='slantU'){g.moveTo(x-2,top-2);g.lineTo(x+sw+2,top-2);g.lineTo(x-2,top+sw*.7);}
+        else if(shp==='slantD'){g.moveTo(x-2,top-2);g.lineTo(x+sw+2,top-2);g.lineTo(x+sw+2,top+sw*.7);}
+        else if(shp==='teeth'){g.moveTo(x-2,top-2);g.lineTo(x+sw+2,top-2);g.lineTo(x+sw+2,top+sw*.14);g.lineTo(x+sw*.75,top+sw*.03);g.lineTo(x+sw*.5,top+sw*.15);g.lineTo(x+sw*.25,top+sw*.04);g.lineTo(x-2,top+sw*.14);}
+        g.fill();g.restore();
+        g.fillStyle=C.bis;if(shp==='flat')g.fillRect(x,top,sw,Math.max(2,sw*.12));
+        g.fillStyle=C.bisDk;g.beginPath();g.arc(x+sw*.5,top+sw*.4,sw*.13,0,7);g.fill();}
+      if(o.labels){const r=o.res&&o.res[i];g.fillStyle=r&&r.pita?C.gold:C.ink;g.font='700 '+(w<360?11:13)+'px "Azeret Mono",monospace';g.textAlign='center';g.fillText(L.toFixed(2),xs[i],base+18);g.fillStyle=C.sub;g.font='700 '+(w<360?9:11)+'px "Zen Maru Gothic",sans-serif';g.fillText(ty.name,xs[i],base+36);}
+    }
+  });
+  g.fillStyle=C.ink;g.fillRect(xs[0]-sw0*1.2,base,xs[3]-xs[0]+sw0*2.4,o.mini?1.5:2);
+}
+function roundTop(g,x,y,w,h,r){g.beginPath();if(g.roundRect&&r>0)g.roundRect(x,y,w,h,[r,r,2,2]);else g.rect(x,y,w,h);g.fill();}
+
+function drawHero(){const {g,w,h}=fit($('cvHero'));drawUpright(g,w,h,[T,T,T,T],{perfect:true});}
+function drawSlots(){const {g,w,h}=fit($('cvSlots'));const lens=[0,1,2,3].map(i=>S.results[i]?S.results[i].len:null);drawUpright(g,w,h,lens,{mini:true,line:true,shapes:S.results.map(r=>r.shape),types:S.results.map(r=>TYPES[r.type])});}
+function drawRes(){const {g,w,h}=fit($('cvRes'));drawUpright(g,w,h,S.results.map(r=>r.len),{line:true,labels:true,res:S.results,shapes:S.results.map(r=>r.shape),types:S.results.map(r=>TYPES[r.type])});}
+
+/* ---------- audio ---------- */
+let ac=null;
+function crunch(big){if(!opt.snd)return;try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();const d=big?.13:.07,n=ac.sampleRate*d,b=ac.createBuffer(1,n,ac.sampleRate),c=b.getChannelData(0);
+ for(let i=0;i<n;i++){const t=i/n;c[i]=(Math.random()*2-1)*Math.pow(1-t,2)*(Math.random()<.25?1:.35);}
+ const s=ac.createBufferSource();s.buffer=b;const f=ac.createBiquadFilter();f.type='bandpass';f.frequency.value=big?1800:3200;f.Q.value=.8;const gn=ac.createGain();gn.gain.value=big?.9:.6;s.connect(f).connect(gn).connect(ac.destination);s.start();}catch(e){}}
+function nib(k){if(!opt.snd)return;try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();const d=.05+Math.random()*.03,n=ac.sampleRate*d,b=ac.createBuffer(1,n,ac.sampleRate),c=b.getChannelData(0);
+ for(let i=0;i<n;i++){const t=i/n;c[i]=(Math.random()*2-1)*Math.pow(1-t,2.4)*(Math.random()<.3?1:.3);}
+ const s=ac.createBufferSource();s.buffer=b;const f=ac.createBiquadFilter();f.type='bandpass';f.frequency.value=2200+Math.random()*1400;f.Q.value=.9;const gn=ac.createGain();gn.gain.value=.45+k*.25;s.connect(f).connect(gn).connect(ac.destination);s.start();}catch(e){}}
+function ding(ok){if(!opt.snd||!ac)return;try{const o=ac.createOscillator(),gn=ac.createGain();o.type='triangle';o.frequency.value=ok?1175:330;gn.gain.setValueAtTime(.25,ac.currentTime);gn.gain.exponentialRampToValueAtTime(.001,ac.currentTime+.5);o.connect(gn).connect(ac.destination);o.start();o.stop(ac.currentTime+.5);}catch(e){}}
+
+/* ---------- play ---------- */
+function newStick(){
+  S.no++;S.type=TYPES[S.order[S.no-1]];S.len=+(17+Math.random()*4).toFixed(2);S.offset=(Math.random()-.5)*2.4;S.landAt=performance.now()+480;
+  S.state='play';S.bites=[];S.crumbs=[];S.guideUntil=(opt.guide===99||opt.guide<0||S.no===1)?S.landAt+Math.abs(opt.guide)*1000:0;
+  const sub=opt.guide!==0&&S.no===1?'赤い印の長さをおぼえて':(opt.guide===2&&S.no===2?'ここからは印なし':'');
+  setMsg(S.no+'本目　'+S.type.name+(sub?'<br><small>'+sub+'</small>':''));
+  S.holding=false;S.bitten=0;setCtrl('play');
+}
+function setMsg(t){$('msg').innerHTML=t;$('msg').style.opacity=t?1:0;}
+
+// bite mark shapes: flat "|" / slant up / slant down / teeth  (no round "(" : it left two horns at the tip)
+const SHAPES=[['flat',.5],['slantU',.17],['slantD',.17],['teeth',.16]];
+function pickShape(){let r=Math.random();for(const [n,w] of SHAPES){if((r-=w)<0)return n;}return 'flat';}
+function setCtrl(mode){
+  const h=$('bHold'),b=$('bStop');h.classList.remove('on');
+  if(mode==='play'){h.hidden=false;$('holdSub').textContent=opt.mode==='release'?'はなしたら、そこで決定':'何回でも。決めたら下のボタン';
+    b.hidden=opt.mode!=='button';b.textContent='ここで決定';b.disabled=false;}
+  else{h.hidden=true;b.hidden=false;b.textContent=S.no>=TOT?'並べてみる':'次の1本';}
+}
+function holdStart(){
+  if(S.state!=='play'||S.holding)return;
+  const now=performance.now();if(now<S.landAt)return;
+  S.holding=true;S.holdStart=now;S.nextBite=now;$('bHold').classList.add('on');
+}
+function holdEnd(){
+  if(!S.holding)return;
+  S.holding=false;$('bHold').classList.remove('on');
+  if(opt.mode==='release'&&S.state==='play'&&S.bitten>0)stop();
+}
+// one nibble. k = 0..1, how long the hold has lasted (gets faster and bigger)
+function nibble(k){
+  const ty=S.type||TYPES.milk,v=Math.min(.9,opt.varr*ty.varr);let a=(0.2+0.2*k)*ty.bite*(1-v+Math.random()*2*v);
+  S.len=Math.max(0,S.len-Math.max(.04,a));S.bitten++;
+  S.bites.push({sd:Math.random(),shape:pickShape()});S.shake=2+2.5*k;
+  const x=xAt(S.len);
+  for(let i=0;i<4+Math.round(4*k);i++)S.crumbs.push({x,y:stickY(),vx:(Math.random()*2+.5)*(1+k),vy:-Math.random()*3,r:1+Math.random()*2.2,c:Math.random()<.6,life:1});
+  nib(k);
+  if(performance.now()>S.guideUntil)setMsg('');
+  if(S.len<=0.4){S.len=0;S.holding=false;$('bHold').classList.remove('on');stop();}
+}
+function tickHold(now){
+  if(!S.holding||S.state!=='play')return;
+  let guard=0;
+  while(now>=S.nextBite&&guard++<4&&S.state==='play'){
+    const k=Math.min(1,(S.nextBite-S.holdStart)/1200*opt.speed*(S.type||TYPES.milk).speed);
+    nibble(k);S.nextBite+=(200-140*k)/(opt.speed*(S.type||TYPES.milk).speed);
+  }
+}
+function stop(){
+  if(S.state!=='play')return;
+  S.state='reveal';S.revealT=performance.now();
+  S.holding=false;setCtrl('reveal');$('bStop').disabled=true;setTimeout(()=>{$('bStop').disabled=false;},650);
+  const err=Math.abs(S.len-T), pita=err<=0.11;
+  let pts=Math.max(0,Math.round(100-err*40));if(pita)pts+=11;
+  S.results.push({len:S.len,err,pita,pts,type:S.type.id,shape:S.bites.length?S.bites[S.bites.length-1].shape:'flat'});
+  setTimeout(()=>{ding(err<0.5);drawSlots();setMsg(pita?'ピタリ！ +11':err<0.5?'おしい！':S.len===0?'食べきっちゃった':(S.len>T?'かじり足りない':'かじりすぎ'));},700);
+}
+function next(){if(S.state==='reveal'){if(S.no>=TOT)result();else newStick();}else stop();}
+
+function ppc(){return Math.min((W-40)/22,40);}
+function x0(){return (W-ppc()*21)/2+S.offset*ppc()+(S.slide||0);}
+function xAt(cm){return x0()+cm*ppc();}
+function stickY(){return H*.5;}
+
+function draw(){
+  requestAnimationFrame(draw);
+  if($('sPlay').hidden)return;
+  cx.setTransform(dpr,0,0,dpr,0,0);cx.clearRect(0,0,W,H);
+  const p=ppc(),y=stickY(),th=Math.max(8,p*.55),pr=Math.min(H*.36,p*5.5),ty=S.type||TYPES.milk,tw=Math.max(5,th*ty.w);
+  const now=performance.now();
+  tickHold(now);
+  S.zoom+=((S.holding?1.07:1)-S.zoom)*.12;
+  {const k=Math.min(1,Math.max(0,1-(S.landAt-now)/480)),c1=1.4,eb=1+(c1+1)*Math.pow(k-1,3)+c1*Math.pow(k-1,2);S.slide=(1-eb)*-(W*.95);}
+  cx.save();
+  if(S.zoom>1.001){const zx=xAt(S.len);cx.translate(zx,y);cx.scale(S.zoom,S.zoom);cx.translate(-zx,-y);}
+  const sh=S.shake>0?(Math.random()-.5)*S.shake:0;S.shake*=.8;if(S.shake<.3)S.shake=0;
+  const px=W/2+S.offset*p+S.slide;   // plate moves with the stick
+  cx.fillStyle='rgba(42,38,34,.07)';ell(px,y+8,W*.45,pr+4);
+  cx.fillStyle='#fff';ell(px,y,W*.45,pr);
+  cx.strokeStyle=C.rim;cx.lineWidth=3;cx.beginPath();cx.ellipse(px,y,W*.38,pr*.8,0,0,7);cx.stroke();
+  cx.translate(sh,0);
+  if(S.state==='play'&&(now<S.guideUntil||opt.guide===99)){
+    cx.globalAlpha=opt.guide===99?.6:Math.min(1,(S.guideUntil-now)/400);guideMark(xAt(T),y,th,'11.11cm');cx.globalAlpha=1;}
+  const L=S.len;
+  if(L>0){
+    const xa=x0(),xb=xAt(L),xh=xAt(Math.min(HANDLE,L));
+    const bt=S.bites.length?S.bites[S.bites.length-1]:null, sq=bt?2:tw/2;
+    cx.save();
+    if(bt){ // cut the bite shape out of the stick with an even-odd clip
+      cx.beginPath();cx.rect(xa-tw*2,y-tw*2,xb-xa+tw*4,tw*4);biteH(bt,xb,y,tw);cx.clip('evenodd');}
+    cx.fillStyle=C.bis;cx.beginPath();cx.roundRect?cx.roundRect(xa,y-tw/2,xb-xa,tw,[tw/2,sq,sq,tw/2]):cx.rect(xa,y-tw/2,xb-xa,tw);cx.fill();
+    if(L>HANDLE){
+      cx.fillStyle=ty.coat;cx.beginPath();const ys=y-tw/2,ye=y+tw/2;cx.moveTo(xh,ys);cx.lineTo(xh,ye);
+      if(bt){cx.lineTo(xb,ye);cx.lineTo(xb,ys);}else{const r=(ye-ys)/2;cx.lineTo(xb-r,ye);cx.arc(xb-r,y,r,Math.PI/2,-Math.PI/2,true);}
+      cx.closePath();cx.fill();
+      cx.fillStyle=ty.hi;cx.fillRect(xh+4,ys+2,Math.max(0,xb-xh-6),2.5);}
+    if(ty.dots&&L>HANDLE){cx.fillStyle=ty.dots;for(let k=0;k<(L-HANDLE)*2.2;k++){cx.fillRect(xh+6+((k*0.61)%1)*(xb-xh-10),y-tw*.38+((k*0.37)%1)*tw*.7,2.2,2.2);}}
+    if(bt){ // the bitten face shows the biscuit inside
+      cx.beginPath();cx.rect(xa,y-tw/2,xb-xa,tw);cx.clip();
+      cx.fillStyle=C.bis;
+      if(bt.shape==='flat'){cx.fillRect(xb-3,y-tw/2,3,tw);}
+      else if(bt.shape==='round'){cx.beginPath();cx.arc(xb+tw*.62*.35,y-tw*.25+bt.sd*tw*.3,tw*.62+2.5,0,7);cx.fill();}
+      else{cx.beginPath();biteH(bt,xb-2.5,y,tw);cx.fill();}
+      cx.fillStyle=C.bisDk;cx.beginPath();cx.arc(xb-tw*.45,y+(bt.sd-.5)*tw*.3,tw*.13,0,7);cx.fill();
+    }
+    cx.restore();
+    cx.fillStyle=C.bisDk;for(let i=.5;i<Math.min(HANDLE,L)-.2;i+=.6){cx.beginPath();cx.arc(xAt(i),y+((i*7)%3-1)*th*.18,1.2,0,7);cx.fill();}
+  }
+  for(const c of S.crumbs){c.x+=c.vx;c.y+=c.vy;c.vy+=.35;c.life-=.012;if(c.y>y+th*1.4){c.y=y+th*1.4;c.vy*=-.3;c.vx*=.6;}
+    cx.globalAlpha=Math.max(0,c.life);cx.fillStyle=c.c?(S.type||TYPES.milk).coat:C.bis;cx.beginPath();cx.arc(c.x,c.y,c.r,0,7);cx.fill();}
+  cx.globalAlpha=1;S.crumbs=S.crumbs.filter(c=>c.life>0);
+  if(S.state==='reveal'){
+    const k=Math.min(1,(now-S.revealT)/600),e=1-Math.pow(1-k,3);
+    const ry=y+th/2+18+(1-e)*30;cx.globalAlpha=e;ruler(ry,p);
+    if(L>0){cx.strokeStyle=C.ink;cx.lineWidth=2;cx.beginPath();cx.moveTo(xAt(L),y-th);cx.lineTo(xAt(L),ry+26);cx.stroke();}
+    cx.fillStyle=C.accent;cx.fillRect(xAt(T)-.5,y-th*1.3,1.2,ry+26-(y-th*1.3));
+    const r=S.results[S.results.length-1];
+    cx.font='700 '+Math.round(Math.min(34,W*.08))+'px "Azeret Mono",monospace';cx.textAlign='center';cx.fillStyle=r.pita?C.gold:C.ink;
+    cx.fillText(L.toFixed(2)+' cm',W/2,y-th-34);
+    cx.font='700 14px "Zen Maru Gothic",sans-serif';cx.fillStyle=C.sub;
+    cx.fillText('ずれ '+r.err.toFixed(2)+'cm ・ '+r.pts+'点',W/2,y-th-12);
+    cx.globalAlpha=1;
+  }
+  cx.restore();
+}
+// bite shape as a sub-path at the stick's right end (xb), horizontal stick of thickness th
+function biteH(bt,xb,y,th){
+  const t=y-th, b=y+th, e=xb+th;
+  if(bt.shape==='round'){const r=th*.62;cx.moveTo(xb+r*.35+r,y-th*.25+bt.sd*th*.3);cx.arc(xb+r*.35,y-th*.25+bt.sd*th*.3,r,0,Math.PI*2);}
+  else if(bt.shape==='slantU'){cx.moveTo(xb-th*.75,t);cx.lineTo(e,t);cx.lineTo(e,b);cx.lineTo(xb,b);cx.lineTo(xb,y+th*.5);cx.closePath();}
+  else if(bt.shape==='slantD'){cx.moveTo(xb,t);cx.lineTo(e,t);cx.lineTo(e,b);cx.lineTo(xb-th*.75,b);cx.lineTo(xb,y-th*.5);cx.closePath();}
+  else if(bt.shape==='teeth'){cx.moveTo(xb,t);cx.lineTo(e,t);cx.lineTo(e,b);cx.lineTo(xb,b);cx.lineTo(xb,y+th*.5);
+    cx.lineTo(xb-th*.14,y+th*.3);cx.lineTo(xb-th*.03,y+th*.1);cx.lineTo(xb-th*.16,y-th*.1);cx.lineTo(xb-th*.04,y-th*.3);cx.lineTo(xb,y-th*.5);cx.closePath();}
+}
+function ell(x,y,rx,ry){cx.beginPath();cx.ellipse(x,y,rx,ry,0,0,7);cx.fill();}
+function rr(x,y,w,h,r){if(w<=0)return;cx.beginPath();cx.roundRect?cx.roundRect(x,y,w,h,Math.min(r,w/2)):cx.rect(x,y,w,h);cx.fill();}
+function guideMark(x,y,th,label,solid){
+  cx.strokeStyle=C.accent;cx.lineWidth=2;cx.setLineDash(solid?[]:[5,4]);cx.beginPath();cx.moveTo(x,y-th*1.6);cx.lineTo(x,y+th*1.6);cx.stroke();cx.setLineDash([]);
+  cx.fillStyle=C.accent;cx.font='700 12px "Azeret Mono",monospace';cx.textAlign='center';cx.fillText(label,x,y+th*1.6+14);}
+function ruler(ry,p){
+  const xa=x0()-4,w=p*21+8;
+  cx.fillStyle='#FBEFB8';cx.strokeStyle=C.ink;cx.lineWidth=1.5;cx.beginPath();cx.roundRect?cx.roundRect(xa,ry,w,26,4):cx.rect(xa,ry,w,26);cx.fill();cx.stroke();
+  cx.fillStyle=C.ink;cx.font='500 9px "Azeret Mono",monospace';cx.textAlign='center';
+  for(let i=0;i<=210;i++){const x=xAt(i/10),hh=i%10===0?11:i%5===0?7:4;if(i%10!==0&&p<14&&i%5!==0)continue;cx.fillRect(x-.5,ry,1,hh);if(i%10===0&&(p>=18||i%20===0))cx.fillText(i/10,x,ry+22);}
+}
+
+function result(){
+  const sum=S.results.reduce((a,r)=>a+r.pts,0),avg=S.results.reduce((a,r)=>a+r.err,0)/S.results.length;
+  const md=S.results.reduce((a,r)=>a+(r.len-T),0)/S.results.length; // + = ate too little
+  const title=avg<=0.11?'1111の神':avg<=0.3?'ピタリ職人':avg<=0.7?'目分量の名人':avg<=1.5?(md>0?'ひかえめなおやつ好き':'ちょっと食べすぎ'):(md>0?'少食さん':'食いしんぼう');
+  $('rName').textContent=title;S.title=title;S.sum=sum;S.avg=avg;
+  $('rScore').textContent=sum;$('rAvg').textContent=avg.toFixed(2);$('rPita').textContent=S.results.filter(r=>r.pita).length;
+  const lens=S.results.map(r=>r.len.toFixed(2)).join(' / ');
+  const txt='【'+title+'】'+lens+'cm・'+sum+'点\n#'+TAG+'\n'+URL_;
+  $('bPost').href='https://x.com/intent/post?text='+encodeURIComponent(txt);
+  show('sRes');
+}
+/* ---------- share card 1200x630 (also used to make ogp.png) ---------- */
+function dispFont(px){return '400 '+px+'px "Dela Gothic One","Noto Sans CJK JP Black","Hiragino Sans",sans-serif';}
+function makeCard(withResult){
+  const c=document.createElement('canvas');c.width=1200;c.height=630;const g=c.getContext('2d');
+  g.fillStyle='#EDF0F1';g.fillRect(0,0,1200,630);
+  // board with the sticks
+  g.fillStyle='#fff';g.strokeStyle=C.ink;g.lineWidth=5;g.beginPath();g.roundRect?g.roundRect(48,48,520,534,28):g.rect(48,48,520,534);g.fill();g.stroke();
+  g.save();g.translate(68,62);
+  if(withResult)drawUpright(g,480,508,S.results.map(r=>r.len),{line:true,labels:true,res:S.results,shapes:S.results.map(r=>r.shape),types:S.results.map(r=>TYPES[r.type])});
+  else drawUpright(g,480,500,[T,T,T,T],{perfect:true});
+  g.restore();
+  // words
+  const X=620;g.textAlign='left';
+  g.fillStyle=C.accent;g.font=dispFont(96);g.fillText('11.11',X,170);
+  const w1=g.measureText('11.11').width;g.fillStyle=C.ink;g.font=dispFont(64);g.fillText('cmで',X+w1+8,170);
+  g.font=dispFont(96);g.fillText('とめる',X,282);
+  if(withResult){
+    g.fillStyle=C.sub;g.font='700 28px "Zen Maru Gothic","Noto Sans CJK JP",sans-serif';g.fillText('称号',X,360);
+    g.fillStyle=C.ink;g.font=dispFont(S.title.length>8?44:56);g.fillText(S.title,X,424);
+    g.font='700 30px "Zen Maru Gothic","Noto Sans CJK JP",sans-serif';g.fillStyle=C.sub;
+    g.fillText(S.sum+'点 ・ 平均のずれ '+S.avg.toFixed(2)+'cm',X,478);
+  }else{
+    g.fillStyle=C.ink;g.font='700 32px "Zen Maru Gothic","Noto Sans CJK JP",sans-serif';
+    g.fillText('先からかじって、',X,396);g.fillText('のこり11.11cmでとめる。',X,444);
+  }
+  g.fillStyle=C.sub;g.font='700 24px "Zen Maru Gothic","Noto Sans CJK JP",sans-serif';g.fillText('#'+TAG,X,560);
+  return c;
+}
+function toast(t){const el=$('toast');el.textContent=t;el.hidden=false;el.style.opacity=1;clearTimeout(toast.t);toast.t=setTimeout(()=>{el.style.opacity=0;setTimeout(()=>el.hidden=true,300);},1800);}
+async function shareImage(){
+  const c=makeCard(true);
+  const blob=await new Promise(r=>c.toBlob(r,'image/png'));if(!blob){toast('画像を作れませんでした');return;}
+  const file=new File([blob],'1111cm.png',{type:'image/png'});
+  const text='【'+S.title+'】'+S.sum+'点 #'+TAG+' '+URL_;
+  try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],text});return;}}catch(e){if(e&&e.name==='AbortError')return;}
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='1111cm.png';document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),4000);toast('画像を保存しました');
+}
+function setSnd(on){opt.snd=on?1:0;const b=$('bSnd');b.textContent='音 '+(on?'ON':'OFF');b.setAttribute('aria-pressed',on?'true':'false');try{localStorage.setItem('tomeru1111-snd',on?'1':'0');}catch(e){}}
+function startGame(){S.no=0;S.results=[];S.order=shuffle(Object.keys(TYPES)).slice(0,TOT);show('sPlay');newStick();}
+
+$('bStart').onclick=startGame;$('bImg').onclick=shareImage;$('bSnd').onclick=()=>setSnd(!opt.snd);setSnd(!!opt.snd);$('bAgain').onclick=startGame;
+const bh=$('bHold');
+bh.addEventListener('pointerdown',e=>{e.preventDefault();try{bh.setPointerCapture(e.pointerId);}catch(_){}holdStart();});
+for(const ev of ['pointerup','pointercancel','lostpointercapture'])bh.addEventListener(ev,holdEnd);
+bh.addEventListener('contextmenu',e=>e.preventDefault());
+$('bStop').onclick=next;
+addEventListener('keydown',e=>{if($('sPlay').hidden)return;
+  if(e.code==='Space'){e.preventDefault();if(!e.repeat){if(S.state==='play')holdStart();else if(!$('bStop').disabled)next();}}
+  else if(e.code==='Enter'){e.preventDefault();if(!$('bStop').hidden&&!$('bStop').disabled)next();}});
+addEventListener('keyup',e=>{if(e.code==='Space')holdEnd();});
+addEventListener('blur',holdEnd);
+document.fonts&&document.fonts.ready.then(()=>{if(!$('sTitle').hidden)drawHero();});
+drawHero();resize();requestAnimationFrame(draw);
+</script>
+</body>
+</html>
